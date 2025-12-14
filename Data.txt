@@ -1,0 +1,27 @@
+[
+  {
+    "nombre": "Mango Tommy",
+    "descripcion": "Mango fresco de producción local, maduración media",
+    "precio": 3200
+  },
+  {
+    "nombre": "Tomate Chonto",
+    "descripcion": "Tomate rojo ideal para ensaladas y guisos",
+    "precio": 1800
+  },
+  {
+    "nombre": "Plátano Verde",
+    "descripcion": "Plátano verde para fritura y preparaciones tradicionales",
+    "precio": 1500
+  },
+  {
+    "nombre": "Yuca",
+    "descripcion": "Yuca fresca, rica en carbohidratos, ideal para sancochos",
+    "precio": 1400
+  },
+  {
+    "nombre": "Guineo Maduro",
+    "descripcion": "Guineo maduro dulce, ideal para consumo directo o postres",
+    "precio": 1200
+  }
+]
