@@ -1,145 +1,99 @@
 from flask import Blueprint
 from flasgger import swag_from
-from app.common import error_bp
 from app.services import product_add,product_delete,product_detail
 from app.services import product_list,product_update
+from flask import Flask, request, jsonify
+# Importaciones de Ariadne para trabajar con GraphQL
+# QueryType y MutationType permiten definir resolvers para consultas y mutaciones
+# make_executable_schema crea el esquema ejecutable de GraphQL
+from ariadne import QueryType, MutationType, make_executable_schema
+# ExplorerGraphiQL proporciona la interfaz visual para probar consultas GraphQL
+from ariadne.explorer import ExplorerGraphiQL
+# graphql_sync ejecuta las consultas GraphQL de forma síncrona
+from ariadne.graphql import graphql_sync
 
 productos_bp = Blueprint('productos', __name__)
 
-@swag_from({
-    'summary':'Consulta general de productos',
-    'responses': {
-        200: {'description': 'Información general de productos'},
-        400: {'description':'Error en la consulta'}
-    } 
-    })
-@productos_bp.route("/products")
-def get_product_list():
+# Definición del esquema GraphQL (typeDefs)
+# Se definen los tipos, consultas (Query) y mutaciones (Mutation)
+type_defs = """
+    # Tipo Producto con sus atributos
+    type Producto {
+        id: Int!
+        nombre: String!
+        descripcion: String!
+        precio: Float!
+    }
+
+    # Consultas disponibles en la API GraphQL
+    type Query {
+        listarProductos: [Producto!]!
+        productoPorId(id: Int!): Producto
+    }
+
+    # Mutaciones disponibles para modificar datos
+    type Mutation {
+        crearProducto(nombre: String!, descripcion: String!, precio: Float!): Producto
+        modificarProducto(id: Int!, nombre: String, descripcion: String, precio: Float): Producto
+        eliminarProducto(id: Int!): String
+    }
+"""
+# Resolvers de las consultas (Query)
+query = QueryType()
+
+# Resolver para listar todos los productos
+@query.field("listarProductos")
+def resolve_listar_productos(_, info):
     productos = product_list()
     return productos
 
-@swag_from({
-    'summary':'Consulta individual de productos',
-    'parameters': [
-        {
-            'name': 'id',
-            'in': 'path',
-            'type': 'integer',
-            'required': True,
-            'description': 'ID del producto consultar',
-            'example': 1
-        }
-        ],
-    'responses': {
-        200: {'description': 'Información individual de productos'},
-        400: {'description':'Error en la consulta'}
-    } 
-    })    
-@productos_bp.route("/products/<int:id>")
-def get_product_detail(id):
+# Resolver para consultar un producto por su ID
+@query.field("productoPorId")
+def resolve_producto_por_id(_, info, id):
     producto = product_detail(id)
     return producto
 
-@swag_from({
-    'summary':'Registro de productos',
-    'description':'Crea un nuevo producto en la base de datos',
-    'parameters': [
-        {
-            'name':'body',
-            'in': 'body',
-            'required':True,
-            'schema':{
-                'type': 'object',
-                'properties': {
-                    'nombre': {'type': 'string', 'example':'Manzana'},
-                    'descripcion':{'type':'string', 'example':'Manzana Chilena'},
-                    'precio': {'type': 'number', 'format':'float', 'example': 10.5}
-                }
-            }
-    }],
-    'responses': {
-        201: {'description': 'producto agregado exitosamente',
-            'examples':{
-                'application/json': {'mensaje': 'Registro agregado exitosamente'} 
-                        }
-            },
-        400: {'description':'Error en el registro',
-            'examples':{
-                'application/json': {'mensaje': 'Error', 'descripcion': 'detalle del error'} 
-                        }
-            }
-    } 
-    })    
-@productos_bp.route("/products",methods=["POST"])
-def get_product_add():
-    producto = product_add()
-    return producto
+# Resolvers de las mutaciones (Mutation)
+mutation = MutationType()
 
-@swag_from({
-    'summary':'Actualización de productos',
-    'description':'Actualiza los productos por ID',
-    'parameters': [
-        {
-            'name': 'id',
-            'in': 'path',
-            'type': 'integer',
-            'required': True,
-            'description': 'ID del producto  actualizar',
-            'example': 1
-        },
-        {
-            'name':'body',
-            'in': 'body',
-            'required':True,
-            'schema':{
-                'type': 'object',
-                'properties': {
-                    'nombre': {'type': 'string', 'example':'Manzana'},
-                    'descripcion':{'type':'string', 'example':'Manzana Chilena'},
-                    'precio': {'type': 'number', 'format':'float', 'example': 10.5}
-                }
-            }
-    }],
-    'responses': {
-        200: {'description': 'producto actualizado exitosamente',
-            'examples':{
-                'application/json': {'mensaje': 'Registro actualizado exitosamente'} 
-                        }
-            },
-        400: {'description':'Error en el registro',
-            'examples':{
-                'application/json': {'mensaje': 'Error', 'descripcion': 'detalle del error'} 
-                        }
-            }
-    } 
-    })
-@productos_bp.route("/products/<int:id>",methods=["PUT"])
-def get_product_update(id):
-    producto = product_update(id)
-    return producto
+# Resolver para crear un nuevo producto
+@mutation.field("crearProducto")
+def resolve_crear_producto(_, info, nombre, descripcion, precio):
+    try:
+        return product_add(nombre, descripcion, precio)
+    except Exception as e:
+        raise Exception(str(e))
     
-@swag_from({
-    'summary':'Eliminación de productos',
-    'parameters': [
-        {
-            'name': 'id',
-            'in': 'path',
-            'type': 'integer',
-            'required': True,
-            'description': 'ID del producto eliminar',
-            'example': 1
-        }
-        ],
-    'responses': {
-        200: {'description': 'Producto eliminado exitosamente'},
-        400: {'description':'Error en la eliminación',
-        'examples':{
-                'application/json':{'mensajes': 'Error', 'descripcion': 'detalle del error'}
-            }
-        }
-    } 
-    }) 
-@productos_bp.route("/products/<int:id>",methods=['DELETE'])
-def get_product_delete(id):
-    producto = product_delete(id)
-    return producto
+@mutation.field("modificarProducto")
+def resolve_modificar_producto(_, info, id, nombre=None, descripcion=None, precio=None):
+    try:
+        return product_update(id, nombre, descripcion, precio)
+    except Exception as e:
+        raise Exception(str(e))
+
+@mutation.field("eliminarProducto")
+def resolve_eliminar_producto(_, info, id):
+    return product_delete(id)
+    
+# Creación del esquema ejecutable de GraphQL
+schema = make_executable_schema(type_defs, query, mutation)
+
+# Endpoint único de GraphQL
+# Maneja tanto consultas (GET) como ejecuciones (POST)
+@productos_bp.route("/graphql", methods=["GET", "POST"])
+def graphql_server():
+    # Si se accede por GET, se muestra la interfaz GraphiQL
+    if request.method == "GET":
+        return ExplorerGraphiQL().html(request)
+
+    # Si se accede por POST, se ejecuta la consulta GraphQL
+    data = request.get_json()
+    success, result = graphql_sync(
+        schema,
+        data,
+        context_value=request,
+        debug=True
+    )
+    # Se retorna la respuesta en formato JSON
+    return jsonify(result), 200 if success else 400
+    

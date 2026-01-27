@@ -1,9 +1,9 @@
 Descripción del proyecto
 
-Backend con servicios API REST para realizar operaciones CRUD sobre una base de datos. 
+Backend con servicios API GraphQL para realizar operaciones CRUD sobre una base de datos. 
 Framework: Flask 
 Entidad Producto con los atributos: id, nombre, descripcion y precio
-Base de datos: Mysql
+Base de datos: SQLite
 
 Estructura de carpetas
 
@@ -16,16 +16,15 @@ Backend_rest/
 │   │
 │   │── services/
 │   │   │── __init__.py
-│   │   └── product_services.py     # Lógica de negocio
+│   │   └── product_services.py     # Lógica de negocio de los servicios
 │   │
 │   │── controller/
 │   │   │── __init__.py
-│   │   └── product_routes.py       # Controlador HTTP
+│   │   └── product_routes.py       # Resolvers de las consultas (Query) y mutaciones (Crear, actualizar, borrar)
 │   │
 │   │── common/
 │   │   └── __init__.py   
-│   │   └── config.py               # Archivo de configuración
-│   │   └── error.py                # Manejador de errores HTTP            
+│   │   └── config.py               # Archivo de configuración           
 │── venv/                           # Entorno virtual 
 │── main.py                         # Punto de entrada
 │── requirements.txt                # Dependencias
@@ -50,4 +49,6 @@ pip install -r requirements.txt
 Set-ExecutionPolicy RemoteSigned
 # Si se quieres cambiar la política del sistema completo
 Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
+
+
 

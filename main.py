@@ -3,7 +3,6 @@ from flask import jsonify,request,abort
 from flask_cors import CORS
 from flasgger import Swagger, swag_from
 from app.models import Product, db
-from app.common import error_bp
 from app.controller import productos_bp
 from app.common import Config
 ##from config import Config
@@ -21,15 +20,11 @@ db.init_app(app)
 with app.app_context():
     db.create_all()
     
-@app.route("/",methods=['GET'])
-def home():
-    """
-    Ruta de prueba para verificar que la API este funcionando"
-    """
-    return jsonify({"mensaje":"API funcionando correctamente"}),200
+@app.route("/")
+def index():
+    return 'Ve a <a href="/graphql">/graphql</a> para acceder a GraphiQL y probar la API GraphQL.'
 
-app.register_blueprint(error_bp)
 app.register_blueprint(productos_bp)
 
 if __name__=='__main__':
-    app.run('0.0.0.0', debug=True, port="5000")
+    app.run('0.0.0.0', debug=True, port="5001")

@@ -1,0 +1,43 @@
+
+## Listar productos
+query {
+  listarProductos {
+    id
+    nombre
+    precio
+  }
+}
+
+## Consultar por id
+query {
+  productoPorId(id: 1) {
+    nombre
+    precio
+  }
+}
+
+## Crear producto
+mutation {
+  crearProducto(nombre: "Guineo",descripcion:"Guineo manzana", precio: 900) {
+    id
+    nombre
+    precio
+  }
+}
+
+## Modificar producto
+mutation {
+  modificarProducto(id: 10, nombre: "Guineo maduro", descripcion: "Guineo Manzana", precio: 5000){
+    id
+    nombre
+    precio
+  }
+}
+
+## Eliminar producto
+mutation {
+  eliminarProducto(id: 3)
+}
+
+ 
+
